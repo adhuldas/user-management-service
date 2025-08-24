@@ -10,7 +10,6 @@ COPY constants /src/constants
 COPY config.py /src/config.py
 COPY run.py /src/run.py
 COPY Dockerfile /src/Dockerfile
-COPY Dockerfile.celery /src/Dockerfile.celery
 USER chat-user
 EXPOSE 5000
 
