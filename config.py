@@ -40,6 +40,7 @@ class Config(object):
     SENDER_EMAIL = Environment.SENDER_EMAIL
 
     RECAPTCHA_SECRET_KEY = Environment.RECAPTCHA_SECRET_KEY
+    BASE_URL = Environment.BASE_URL
 
 
 class TestingConfig(Config):
