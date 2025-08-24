@@ -55,3 +55,4 @@ class Environment:
     RECAPTCHA_SECRET_KEY = os.environ.get(
         "RECAPTCHA_SECRET_KEY", "RECAPTCHA_SECRET_KEY"
     )
+    BASE_URL = os.getenv("BASE_URL","http://localhost:9001/auth")
