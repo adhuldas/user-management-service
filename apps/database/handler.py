@@ -127,7 +127,6 @@ class MongoDbHandler:
     def find_one_and_update(self, filter: dict,data: dict):
         self.dict_instance_checker(data)
         self.dict_instance_checker(filter, _is_filter=True)
-        print({"$set": data})
         return self.db_connection.find_one_and_update(filter, {"$set": data})
 
     def find_one_and_delete(self, data: dict):
