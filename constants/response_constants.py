@@ -13,4 +13,4 @@ class ResponseConstants:
     EMAIL_ID_NOT_VALID = "Provide a valid email id"
     RESTRICTED_ACCESS_MESSAGE = "Restricted Access"
     PASSWORD_FORMAT_MESSAGE = "Password should be at least 8 characters which contains at least one lowercase,one uppercase,one digit and at least one character from the set @#&%!~`$^_*"
-
+    BAD_REQUEST = "Bad request, not valid request"

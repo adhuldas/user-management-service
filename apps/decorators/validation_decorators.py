@@ -2,6 +2,8 @@ from functools import wraps
 import logging
 
 from flask import jsonify, request
+from flask_jwt_extended import get_jwt_identity
+from apps.database.models import UsersDb
 from constants.common_constants import CommonConstant
 from constants.response_constants import ResponseConstants
 
@@ -71,3 +73,29 @@ def empty_field_check(dictionary, keys):
     except Exception as exc:
         logging.error(f"error occured in fucntion empty_field_check:{exc}")
         return False
+    
+
+def user_active_check():
+    """
+    CHECKS IF THE USER IS ACTIVE OR NOT
+    """
+
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            user_id = get_jwt_identity()
+            user_details = UsersDb().find_one(
+                {"user_id": user_id}, {"_id": 0, "Status": 1}
+            )
+            if user_details:
+                user_status = user_details.get("Status")
+                if user_status != "Active":
+                    return jsonify(message="INACTIVE USER"), 422
+
+            ret = f(*args, **kwargs)
+
+            return ret
+
+        return wrapped
+
+    return decorator
