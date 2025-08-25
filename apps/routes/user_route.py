@@ -114,12 +114,11 @@ def search_user():
         return jsonify(message=ResponseConstants.INTERNAL_ERROR_MESSAGE), 500
 
 
-@user_module.route("image", methods=["POST"])
-@jwt_required()
-def render_profile_picture():
+@user_module.route("image/<image_id>", methods=["GET"])
+def render_profile_picture(image_id):
     """ """
     try:
-        response, status_code = UserImageHelper.get_user_image(request.json)
+        response, status_code = UserImageHelper.get_user_image(image_id)
 
         return response, status_code
     except Exception as exc:

@@ -46,7 +46,7 @@ class UserprofileHelper:
             files_id = user_details[0].get("files_id")
             if files_id:
                 # Otherwise, use the regular profile image if available
-                files_id = ApiEndpoints.IMAGE_URL + f"{files_id}"
+                files_id = ApiEndpoints.IMAGE_URL + "user/image/"+f"{files_id}"
                 # Update the file URL in the user detail response
                 user_details[0].update({"files_id": files_id})
             # Decrypting the user details

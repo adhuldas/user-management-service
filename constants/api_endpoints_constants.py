@@ -6,4 +6,4 @@ class ApiEndpoints:
     Class to hold API endpoints.
     """
 
-    IMAGE_URL = Environment.BASE_URL + "/user/profile/image/"
+    IMAGE_URL = Environment.BASE_URL
