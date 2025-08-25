@@ -1,9 +1,11 @@
 
 
 import logging
+import re
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 
+from apps.database_query_handler.aggregate_queries.search_aggregation import UserList
 from apps.decorators.fernet_decorators import decryptor, encryptor
 from apps.decorators.validation_decorators import content_type_check, require_fields, user_active_check
 from apps.helpers.route_helpers.user_route_helpers.signin_helper import SigninHelper
@@ -70,3 +72,40 @@ def user_profile():
         logging.error(f"Error occurred in function user_profle: {exc}")
         # Step 6: Return generic internal server error
         return jsonify(message=ResponseConstants.INTERNAL_ERROR_MESSAGE), 500
+    
+
+@user_module.route("list", methods=["POST"])
+@jwt_required()
+@content_type_check("json")
+@decryptor
+def search_user():
+    """ 
+    
+    """
+    try:
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        name = request.decrypted_data.get("search_data")
+        if " " in name:
+            first_name, last_name = name.split(maxsplit=1)
+            firstname = f".*{re.escape(first_name)}.*"
+            lastname = f".*{re.escape(last_name)}.*"
+            # model function to perform aggrgration
+            user_list = UserList.user_name_list(firstname, lastname)
+        # condtion to check whether received parameter is holding only email
+        elif re.match(email_pattern, name):
+            user_list = UserList.user_list_request_data({"username": name})
+        # to check whether received parameter is holding only whether firstname or lastname
+        else:
+            regex_pattern = f".*{re.escape(name)}.*"
+            # model function to perform aggrgration
+            user_list = UserList.user_name_list(
+                firstname=regex_pattern, lastname=regex_pattern
+            )
+        return jsonify(user_list),200
+
+    except Exception as exc:
+        # Step 5: Log and handle unexpected exceptions
+        logging.error(f"Error occurred in function user_profle: {exc}")
+        # Step 6: Return generic internal server error
+        return jsonify(message=ResponseConstants.INTERNAL_ERROR_MESSAGE), 500
+    
