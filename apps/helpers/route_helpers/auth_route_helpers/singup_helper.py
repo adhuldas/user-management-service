@@ -1,7 +1,9 @@
 import logging
 from flask import jsonify
+from pydantic import ValidationError
 from apps.database.models import UsersDb
 from apps.models.singup_model import SignupModel
+from apps.utils.generic_utils import error_message
 from apps.utils.token_utils import create_dynamic_token
 from apps.validators.auth_validators import AuthValidator
 from config import Config
@@ -61,6 +63,11 @@ class SignupHelper:
             }
 
             return jsonify(response), 200
+
+        except ValidationError as e:
+            # Return the first validation error from the request schema
+            first_error_msg = error_message(e)
+            return jsonify(message=first_error_msg), 400
 
         except Exception as exc:
             logging.error(f"Error occured in function user_singup_helper:{exc}")
