@@ -26,7 +26,6 @@ def create_app(config_type="config.Config"):
         __name__, static_folder="static", static_url_path="/identity/assets"
     )  # NOSONAR S4502
 
-
     # Setting configuration for the project
     app.config.from_object(config_type)
     # Adding log level
@@ -51,13 +50,11 @@ def create_app(config_type="config.Config"):
     # initialize mongo app
     mongo.init_app(app)
 
-    # # Register blueprint
-    from apps.routes.auth_route import (
-        auth_module,
-    )  # pylint:disable=import-outside-toplevel
+    # Register blueprint
+    from apps.blueprint_import import auth_module, user_module
 
     app.register_blueprint(auth_module)
-
+    app.register_blueprint(user_module)
 
     return app
 
@@ -71,8 +68,6 @@ class ColoredFormatter(logging.Formatter):
                 Config.COLORS[levelname] + levelname + Config.COLORS["ENDC"]
             )
             record.msg = (
-                Config.COLORS[levelname]
-                + str(record.msg)
-                + Config.COLORS["ENDC"]
+                Config.COLORS[levelname] + str(record.msg) + Config.COLORS["ENDC"]
             )
         return logging.Formatter.format(self, record)

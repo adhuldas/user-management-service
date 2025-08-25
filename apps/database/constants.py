@@ -53,3 +53,4 @@ class MongoDbAggregrationConstants:
     CONTROLLER_RESULT = "$controller_result"
     METADATA_OPERATION = "metadata.operation"
     METADATA_CONTROLLER_UUID = "metadata.controller_uuid"
+    JOINED_RESULT = "$join_result.user_type"
