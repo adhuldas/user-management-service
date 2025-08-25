@@ -3,10 +3,12 @@ import logging
 import re
 import uuid
 
+from flask import jsonify
 import jwt
 import pytz
 from apps.database.models import UsersTokenDb
 from constants.common_constants import CommonConstant
+from constants.response_constants import ResponseConstants
 
 
 class AuthValidator:
@@ -188,4 +190,78 @@ class AuthValidator:
 
         except Exception as exc:
             logging.error(f"Error occurred in email_regex_verify: {exc}")
+            return False
+
+
+    @staticmethod
+    def validate_user(user: dict):
+        """
+        Validates that the user exists and has an 'Active' status.
+
+        Parameters
+        ----------
+        user : dict
+            The user data fetched from the database.
+
+        Returns
+        -------
+        tuple
+            (True, None) if valid; (False, (Flask response, int)) if invalid.
+        """
+        try:
+            if not user:
+                return False, (
+                    jsonify(message=ResponseConstants.SIGN_IN_MESSAGE),
+                    403,
+                )
+
+            if user[0].get("Status", None) != "Active":
+                return False, (
+                    jsonify(message=ResponseConstants.INACTIVE_USER),
+                    403,
+                )
+
+            return True, None
+
+        except Exception as exc:
+            logging.error(f"Error during user validation: {exc}")
+            return False, (
+                jsonify(ResponseConstants.INTERNAL_ERROR_MESSAGE),
+                500,
+            )
+        
+    @staticmethod
+    def prepare_additional_claims(user_data: list):
+        """
+        Builds additional claims required for JWT access tokens.
+
+        Parameters
+        ----------
+        user_data : list
+            A list containing user dictionary (usually one entry from DB).
+
+        Returns
+        -------
+        dict or bool
+            Dictionary of additional claims if valid; otherwise False.
+        """
+        try:
+            if not user_data or not isinstance(user_data, list):
+                return False
+
+            user = user_data[0]
+            user_id = user.get("user_id")
+            user_type = user.get("user_type", "customer")
+
+            if not user_id:
+                return False
+            additional_claims = {
+                "user_details": {"user_id": user_id},
+                "role": user_type,
+            }
+
+            return additional_claims
+
+        except Exception as exc:
+            logging.error(f"Error preparing additional claims: {exc}")
             return False
