@@ -21,7 +21,7 @@ class UserRegistrationModel(BaseModel):
         None, description="JWT token passed for verification"
     )
     user_type: Optional[str] = Field(
-        None, description="Type of the user (e.g., customer, admin)"
+        default="customer", description="Type of the user (e.g., customer, admin)"
     )
     context: Optional[str] = Field(
         None, description="Optional additional context for registration"
