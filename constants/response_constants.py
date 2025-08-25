@@ -14,3 +14,5 @@ class ResponseConstants:
     RESTRICTED_ACCESS_MESSAGE = "Restricted Access"
     PASSWORD_FORMAT_MESSAGE = "Password should be at least 8 characters which contains at least one lowercase,one uppercase,one digit and at least one character from the set @#&%!~`$^_*"
     BAD_REQUEST = "Bad request, not valid request"
+    SIGN_IN_MESSAGE = "Username/password is incorrect"
+    INACTIVE_USER = "This user is in inactive state"

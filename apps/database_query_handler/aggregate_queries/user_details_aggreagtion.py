@@ -76,3 +76,43 @@ class UserDetailsAggregation:
                 f"Error occured in function get_complete_user_details:{exc}"
             )
             return []
+        
+    @staticmethod
+    def get_user_details(username):
+        """ """
+        try:
+            pipeline = [
+                {
+                    MongoDbAggregrationConstants.MATCH: {
+                        "username": username.lower()
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "UserType",
+                        "localField": "user_id",
+                        "foreignField": "user_id",
+                        "as": "join_result",
+                    }
+                },
+                {
+                    "$unwind": {
+                        "path": "$join_result",
+                        "preserveNullAndEmptyArrays": True,
+                    }
+                },
+                {
+                    MongoDbAggregrationConstants.PROJECT: {
+                        "_id": 0,
+                        "user_id": "$user_id",
+                        "user_type": "$join_result.user_type",
+                        "username": 1,
+                        "Status": 1,
+                        "password": 1,
+                    }
+                },
+            ]
+            return pipeline
+        except Exception as exc:
+            logging.error(f"Error in get_user_details: {exc}")
+            return []
