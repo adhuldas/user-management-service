@@ -1,5 +1,3 @@
-
-
 import logging
 import re
 from flask import Blueprint, jsonify, request
@@ -7,9 +5,21 @@ from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 
 from apps.database_query_handler.aggregate_queries.search_aggregation import UserList
 from apps.decorators.fernet_decorators import decryptor, encryptor
-from apps.decorators.validation_decorators import content_type_check, require_fields, user_active_check
+from apps.decorators.validation_decorators import (
+    content_type_check,
+    require_fields,
+    user_active_check,
+)
 from apps.helpers.route_helpers.user_route_helpers.signin_helper import SigninHelper
-from apps.helpers.route_helpers.user_route_helpers.user_profile_helper import UserprofileHelper
+from apps.helpers.route_helpers.user_route_helpers.upload_image_helper import (
+    UploadImageHelper,
+)
+from apps.helpers.route_helpers.user_route_helpers.user_image_helper import (
+    UserImageHelper,
+)
+from apps.helpers.route_helpers.user_route_helpers.user_profile_helper import (
+    UserprofileHelper,
+)
 from constants.response_constants import ResponseConstants
 
 
@@ -32,9 +42,7 @@ def signin():
     """
     try:
 
-        response, status_code = SigninHelper.signin_api_helper(
-            request.decrypted_data
-        )
+        response, status_code = SigninHelper.signin_api_helper(request.decrypted_data)
 
         return response, status_code
     except Exception as exc:
@@ -60,9 +68,7 @@ def user_profile():
     """
     try:
         user_id = get_jwt_identity()
-        response, status_code = UserprofileHelper.get_user_profile_helper(
-            user_id
-        )
+        response, status_code = UserprofileHelper.get_user_profile_helper(user_id)
         if status_code != 200:
             return response, status_code
         return response
@@ -72,16 +78,14 @@ def user_profile():
         logging.error(f"Error occurred in function user_profle: {exc}")
         # Step 6: Return generic internal server error
         return jsonify(message=ResponseConstants.INTERNAL_ERROR_MESSAGE), 500
-    
+
 
 @user_module.route("list", methods=["POST"])
 @jwt_required()
 @content_type_check("json")
 @decryptor
 def search_user():
-    """ 
-    
-    """
+    """ """
     try:
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         name = request.decrypted_data.get("search_data")
@@ -101,11 +105,41 @@ def search_user():
             user_list = UserList.user_name_list(
                 firstname=regex_pattern, lastname=regex_pattern
             )
-        return jsonify(user_list),200
+        return jsonify(user_list), 200
 
     except Exception as exc:
         # Step 5: Log and handle unexpected exceptions
         logging.error(f"Error occurred in function user_profle: {exc}")
         # Step 6: Return generic internal server error
         return jsonify(message=ResponseConstants.INTERNAL_ERROR_MESSAGE), 500
-    
+
+
+@user_module.route("image", methods=["POST"])
+@jwt_required()
+def render_profile_picture():
+    """ """
+    try:
+        response, status_code = UserImageHelper.get_user_image(request.json)
+
+        return response, status_code
+    except Exception as exc:
+        # Step 5: Log and handle unexpected exceptions
+        logging.error(f"Error occurred in function render_profile_picture: {exc}")
+        # Step 6: Return generic internal server error
+        return jsonify(message=ResponseConstants.INTERNAL_ERROR_MESSAGE), 500
+
+
+@user_module.route("update/profile/image", methods=["POST"])
+@jwt_required()
+def update_user_profile():
+    """ """
+    try:
+        user_id = get_jwt_identity()
+        profile_picture = request.files.get("profile_picture")
+        response, status_code = UploadImageHelper.upload_image(profile_picture, user_id)
+        return response, status_code
+    except Exception as exc:
+        # Step 5: Log and handle unexpected exceptions
+        logging.error(f"Error occurred in function render_profile_picture: {exc}")
+        # Step 6: Return generic internal server error
+        return jsonify(message=ResponseConstants.INTERNAL_ERROR_MESSAGE), 500
