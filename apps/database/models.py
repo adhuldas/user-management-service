@@ -46,3 +46,7 @@ class UserTypeDb(BaseCollection):
 class FsDb(MongoDbHandler):
     def __init__(self) -> None:
         super().__init__(DbNameConstants.fs_files)
+
+class TokenBlockListDb(MongoDbHandler):
+    def __init__(self) -> None:
+        super().__init__(DbNameConstants.token_blocklist)

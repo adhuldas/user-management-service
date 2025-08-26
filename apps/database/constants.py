@@ -9,6 +9,7 @@ class DbNameConstants:
     users_token_db = "UsersToken"
     user_type_db = "UserType"
     fs_files = "fs.files"
+    token_blocklist = "token_blocklist"
 
 
 class MongoDbAggregrationConstants:

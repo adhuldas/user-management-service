@@ -16,3 +16,4 @@ class ResponseConstants:
     BAD_REQUEST = "Bad request, not valid request"
     SIGN_IN_MESSAGE = "Username/password is incorrect"
     INACTIVE_USER = "This user is in inactive state"
+    REFRESH_TOKEN_BAD_REQUEST = "Operation cannot be performed as server requires refresh token  to clean up security credentials based on the same authorization grant"

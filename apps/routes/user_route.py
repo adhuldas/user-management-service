@@ -1,16 +1,24 @@
 import logging
 import re
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt,
+    get_jwt_identity,
+    jwt_required,
+)
 
 from apps.database_query_handler.aggregate_queries.search_aggregation import UserList
 from apps.decorators.fernet_decorators import decryptor, encryptor
+from apps.decorators.token_validator_decorator import token_required
 from apps.decorators.validation_decorators import (
     content_type_check,
     require_fields,
     user_active_check,
 )
 from apps.helpers.route_helpers.user_route_helpers.signin_helper import SigninHelper
+from apps.helpers.route_helpers.user_route_helpers.signout_helper import SignOutHelper
 from apps.helpers.route_helpers.user_route_helpers.upload_image_helper import (
     UploadImageHelper,
 )
@@ -53,6 +61,7 @@ def signin():
 
 
 @user_module.route("me", methods=["GET"])
+@token_required
 @jwt_required()
 @user_active_check()
 @encryptor
@@ -81,6 +90,7 @@ def user_profile():
 
 
 @user_module.route("list", methods=["POST"])
+@token_required
 @jwt_required()
 @content_type_check("json")
 @decryptor
@@ -129,6 +139,7 @@ def render_profile_picture(image_id):
 
 
 @user_module.route("update/profile/image", methods=["POST"])
+@token_required
 @jwt_required()
 def update_user_profile():
     """ """
@@ -140,5 +151,74 @@ def update_user_profile():
     except Exception as exc:
         # Step 5: Log and handle unexpected exceptions
         logging.error(f"Error occurred in function render_profile_picture: {exc}")
+        # Step 6: Return generic internal server error
+        return jsonify(message=ResponseConstants.INTERNAL_ERROR_MESSAGE), 500
+
+
+@user_module.route("signout", methods=["DELETE"])
+@token_required
+@jwt_required()
+def singout():
+    """
+    API for logout and save JTI of corresponding access and refresh tokens
+    Mandatory field is refresh token
+
+    PROCESS
+        JTI and Type of access token is fetched with get_jwt method
+        Similarly JTI and Type of refresh token is fetched by decoding it
+        Both of the JTIs and Types are stored into the token_blocklist collection
+    """
+    try:
+        jti = get_jwt()["jti"]
+        type1 = get_jwt()["type"]
+        response, status_code = SignOutHelper.user_signout_helper(
+            jti, type1, request.json
+        )
+
+        return response, status_code
+
+    except Exception as exc:
+        # Step 5: Log and handle unexpected exceptions
+        logging.error(f"Error occurred in function singout: {exc}")
+        # Step 6: Return generic internal server error
+        return jsonify(message=ResponseConstants.INTERNAL_ERROR_MESSAGE), 500
+
+
+@user_module.route("/refresh/token", methods=["GET"])
+@token_required
+@jwt_required(refresh=True)
+@user_active_check()
+def refresh():
+    """
+    Fetching new refresh and access tokens by passing the old refresh token
+    Mandatory field is refresh-token as header
+
+    PROCESS
+        Username is fetched from the refresh token
+        From refresh_token the additional calims are also fetched
+        New access and refresh tokens are created with additional claims
+    """
+    try:
+        user_id = get_jwt_identity()
+        # FROM REFRESH_TOKEN THE ADDITIONAL CALIMS ARE ALSO FETCHED
+        claims = get_jwt()["user_details"]
+        user_role = get_jwt()["role"]
+        additional_claims = {"user_details": claims, "role": user_role}
+
+        # NEW ACCESS AND REFRESH TOKENS ARE CREATED WITH ADDITIONAL CLAIMS
+        access_token = create_access_token(user_id, additional_claims=additional_claims)
+        refresh_token = create_refresh_token(
+            user_id, additional_claims=additional_claims
+        )
+
+        # both of the tokens are returned
+        return (
+            jsonify(access_token=access_token, refresh_token=refresh_token),
+            200,
+        )
+
+    except Exception as exc:
+        # Step 5: Log and handle unexpected exceptions
+        logging.error(f"Error occurred in function refresh: {exc}")
         # Step 6: Return generic internal server error
         return jsonify(message=ResponseConstants.INTERNAL_ERROR_MESSAGE), 500
