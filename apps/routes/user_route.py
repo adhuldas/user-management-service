@@ -184,8 +184,7 @@ def singout():
         return jsonify(message=ResponseConstants.INTERNAL_ERROR_MESSAGE), 500
 
 
-@user_module.route("refresh/token", methods=["GET"])
-@token_required
+@user_module.route("/refresh/token", methods=["GET"])
 @jwt_required(refresh=True)
 @user_active_check()
 def refresh():
